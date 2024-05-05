@@ -25,6 +25,7 @@ export default function Home() {
       <div className="items-start items-center">
         <div>Hi Steven</div>
         <ImageView pixelData={data} width={cols} height={rows} displayWidth={cols*scale} displayHeight={rows*scale} />
+        <Histogram bins={frameHistogram.bins} hist={frameHistogram.hist} />
       </div>
     );
   }
@@ -36,8 +37,7 @@ export default function Home() {
       <WebSocketProvider>
         <Content/>
       </WebSocketProvider>
-      <Histogram  />
-
+  
     </main>
 
   );

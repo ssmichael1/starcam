@@ -9,87 +9,99 @@ import HCAnnotAdv from "highcharts/modules/annotations-advanced";
 HCAnnot(Highcharts);
 HCAnnotAdv(Highcharts);
 
-//const Histogram: React.FC<FrameHistogram> = ({ bins, hist }) => {
-const Histogram: React.FC<{}> = () => {
+const Histogram: React.FC<FrameHistogram> = ({ bins, hist }) => {
   const chartComponent = useRef<{
     chart: Highcharts.Chart;
     container: React.RefObject<HTMLDivElement>;
   }>(null); 
 
+  const [an, setAn] = useState<Highcharts.Annotation>();
   const initialData = Array.from(Array(1024).keys()).map((v)=>[v*4, 0])
 
-  const chartOptions: Highcharts.Options = {chart: {
-    type: 'column',
-    width: 1920/2,
-    height: 500,
-  },
-  title: {
-    text: 'Histogram'
-  },
-  xAxis: {
-    min: 0, 
-    max: 4096,
-  },
-  plotOptions: {
-    series: {
-      animation: false,
+  const chartOptions: Highcharts.Options = {
+    chart: {
+      type: 'column',
+      width: 1920/2,
+      height: 500,
     },
-  },      
-  series: [{
-    data: initialData,
-    color: 'blue',
-    type: 'column'
-  }],
-  annotations: [
-    {
-      shapeOptions: {
-        type: "path",
-        dashStyle: "Solid",
-        strokeWidth: 3,
-        stroke: "red",
-        fill: "red"
+    title: {
+      text: 'Histogram'
+    },
+    xAxis: {
+      min: 0, 
+      max: 4096,
+    },
+    plotOptions: {
+      series: {
+        animation: false,
       },
-      draggable: 'x',
-      shapes: [
+    },      
+  }
+
+// In your useMemo hook
+useEffect(() => {
+  if(!chartComponent.current)
+    return;
+
+  let chart = chartComponent.current.chart;
+
+  // Assuming bins and hist are your new data
+  let newData = bins.map((b,idx) => [b, hist[idx]]);
+
+  if (chart.series.length > 0) {
+    chart.series[0].setData(newData);
+
+  } else {
+    chart.addSeries({
+      data: newData,
+      color: 'blue',
+      type: 'column'
+    })
+    let yl = chart.yAxis[0].getExtremes()
+    
+      
+    setAn(chart.addAnnotation(
         {
-          type: "path",
-          points: [
+          shapeOptions: {
+            type: "path",
+            dashStyle: "Solid",
+            strokeWidth: 3,
+            stroke: "red",
+            fill: "red"
+          },
+          events: {
+            drag: (e: any) => {
+              console.log(e)
+              let xValue = chart.xAxis[0].toValue(e?.chartX, false)
+              console.log('Drag position x-axis value:', xValue);            }
+          },
+          draggable: 'x',
+          shapes: [
             {
-              x: 0,
-              y: 25000,
-              xAxis: 0,
-              yAxis: 0
-            },
-            {
-              x: 1000,
-              y: 25000,
-              xAxis: 0,
-              yAxis: 0
+              type: "path",
+              points: [
+                {
+                  x: 100,
+                  y: yl.min,
+                  xAxis: 0,
+                  yAxis: 0
+                },
+                {
+                  x: 100,
+                  y: yl.max,
+                  xAxis: 0,
+                  yAxis: 0
+                }
+              ]
             }
           ]
         }
-      ]
-    }
-  ] 
-
+      )
+    ) 
   }
 
-  /*
-  useMemo(() => {
-    if(!chartComponent.current)
-      return;
+}, [bins, hist]);
 
-    let chart = chartComponent.current?.chart
-
-    //1console.log('redrawing')
-    //console.log(chart.series)
-    // chart.series[0].setData(bins.map((b,idx)=> [b, hist[idx]]))
-    //chart.redraw(false)
-
-  }, [bins, hist]);
-  */
-
-  console.log('redrawing')
   return (
     <HighchartsReact
       highcharts={Highcharts}
