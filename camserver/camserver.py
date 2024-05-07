@@ -58,12 +58,18 @@ def callback(frame, timestamp, cbdata):
     asyncio.run_coroutine_threadsafe(broadcast(frame, cbdata), cbdata['loop'])
 
 async def simcam(cbdata):
+    [x,y] = np.meshgrid(np.arange(-960, 960), np.arange(-540, 540 ))  
+    sigma = 125
+
+
+
     while True:
-        frame = (
-            (np.random.randn(1080, 1920)*128
-                  + 512.0
-                  ) * 16
-        ).astype(np.uint16)
+        cen = np.random.rand(2)*100
+        frame = 2048 * np.exp(-((x-cen[0])**2 + (y-cen[1])**2)/(2*sigma**2))
+        frame = frame + 512.0 + np.random.randn(1080, 1920)*128
+        frame = (frame * 16).astype(np.uint16)
+
+     
         timestamp = dt.datetime.now()
         callback(frame, timestamp, cbdata)
         await asyncio.sleep(0.1)

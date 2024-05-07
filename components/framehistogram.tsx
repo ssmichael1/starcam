@@ -5,9 +5,19 @@ import { FrameHistogram } from './camclient';
 
 import HCAnnot from "highcharts/modules/annotations";
 import HCAnnotAdv from "highcharts/modules/annotations-advanced";
+import { minifySync } from 'next/dist/build/swc';
 
-HCAnnot(Highcharts);
-HCAnnotAdv(Highcharts);
+if (typeof Highcharts === 'object') {
+  HCAnnot(Highcharts);
+  HCAnnotAdv(Highcharts);
+}
+
+
+interface FrameHistogramFCData {
+  minfc: number;
+  maxfc: number;
+  gamma: number;
+}
 
 const Histogram: React.FC<FrameHistogram> = ({ bins, hist }) => {
   const chartComponent = useRef<{
@@ -15,8 +25,13 @@ const Histogram: React.FC<FrameHistogram> = ({ bins, hist }) => {
     container: React.RefObject<HTMLDivElement>;
   }>(null); 
 
-  const [an, setAn] = useState<Highcharts.Annotation>();
+  const [anLimLeft, setAnLimLeft] = useState<Highcharts.Annotation>();
+  const [anLimRight, setAnLimRight] = useState<Highcharts.Annotation>();
   const initialData = Array.from(Array(1024).keys()).map((v)=>[v*4, 0])
+  
+  let fcData: FrameHistogramFCData = {minfc: 0, maxfc: 1, gamma: 1.0}
+  let anLeftLim: Highcharts.Annotation|null = null
+  let anRightLim: Highcharts.Annotation|null = null
 
   const chartOptions: Highcharts.Options = {
     chart: {
@@ -35,7 +50,14 @@ const Histogram: React.FC<FrameHistogram> = ({ bins, hist }) => {
       series: {
         animation: false,
       },
-    },      
+    },
+    legend: {
+      align: 'right',
+      verticalAlign: 'top',
+      x: -10,
+      y: 100,
+      floating: true,
+    }      
   }
 
 // In your useMemo hook
@@ -55,12 +77,65 @@ useEffect(() => {
     chart.addSeries({
       data: newData,
       color: 'blue',
-      type: 'column'
+      type: 'column',
+      name: 'Histogram'
     })
     let yl = chart.yAxis[0].getExtremes()
+    let xl = chart.xAxis[0].getExtremes()
+    console.log('xl = ' + xl.min + ' ' + xl.max)
+    fcData = {...fcData, minfc: xl.min, maxfc: xl.max}
+    console.log(fcData)
+
+    anRightLim = chart.addAnnotation(
+      {
+        shapeOptions: {
+          type: "path",
+          dashStyle: "Solid",
+          strokeWidth: 3,
+          stroke: "green",
+          fill: "green"
+        },
+        events: {
+          drag: (e: any) => {
+            let xValue = chart.xAxis[0].toValue(e?.chartX, false)
+            if (xValue < fcData.minfc + 8) {
+              console.log('preventing movement')
+              xValue = fcData.minfc + 8
+              let xPixelValue = chart.xAxis[0].toPixels(xValue, false)
+              console.log('xPixelValue = ' + xPixelValue)
+              anRightLim?.shapesGroup.attr({x: xPixelValue})
+              return
+            }
+            fcData = {...fcData, maxfc: xValue};
+          },
+    
+        },
+        draggable: 'x',
+        shapes: [
+          {
+            type: "path",
+            points: [
+              {
+                x: xl.max,
+                y: yl.min,
+                xAxis: 0,
+                yAxis: 0
+              },
+              {
+                x: xl.max,
+                y: yl.max,
+                xAxis: 0,
+                yAxis: 0
+              }
+            ]
+          }
+        ]
+      }
+    )
+
     
       
-    setAn(chart.addAnnotation(
+    anLeftLim = chart.addAnnotation(
         {
           shapeOptions: {
             type: "path",
@@ -71,9 +146,13 @@ useEffect(() => {
           },
           events: {
             drag: (e: any) => {
-              console.log(e)
               let xValue = chart.xAxis[0].toValue(e?.chartX, false)
-              console.log('Drag position x-axis value:', xValue);            }
+              if (xValue > fcData.maxfc - 8) {
+                xValue = fcData.maxfc - 8
+              }
+              
+              fcData = {...fcData, minfc: xValue};
+            }
           },
           draggable: 'x',
           shapes: [
@@ -81,13 +160,13 @@ useEffect(() => {
               type: "path",
               points: [
                 {
-                  x: 100,
+                  x: xl.min,
                   y: yl.min,
                   xAxis: 0,
                   yAxis: 0
                 },
                 {
-                  x: 100,
+                  x: xl.min,
                   y: yl.max,
                   xAxis: 0,
                   yAxis: 0
@@ -97,9 +176,8 @@ useEffect(() => {
           ]
         }
       )
-    ) 
+  
   }
-
 }, [bins, hist]);
 
   return (
