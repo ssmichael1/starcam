@@ -38,6 +38,7 @@ const Histogram: React.FC<FrameHistogram> = ({ bins, hist }) => {
       type: 'column',
       width: 1920/2,
       height: 500,
+      animation: false,
     },
     title: {
       text: 'Histogram'
@@ -72,7 +73,7 @@ useEffect(() => {
 
   if (chart.series.length > 0) {
     chart.series[0].setData(newData);
-
+    chart.redraw(false)
   } else {
     chart.addSeries({
       data: newData,
@@ -80,13 +81,14 @@ useEffect(() => {
       type: 'column',
       name: 'Histogram'
     })
+    /*
     let yl = chart.yAxis[0].getExtremes()
     let xl = chart.xAxis[0].getExtremes()
     console.log('xl = ' + xl.min + ' ' + xl.max)
     fcData = {...fcData, minfc: xl.min, maxfc: xl.max}
     console.log(fcData)
 
-    anRightLim = chart.addAnnotation(
+    setAnLimRight(chart.addAnnotation(
       {
         shapeOptions: {
           type: "path",
@@ -103,7 +105,7 @@ useEffect(() => {
               xValue = fcData.minfc + 8
               let xPixelValue = chart.xAxis[0].toPixels(xValue, false)
               console.log('xPixelValue = ' + xPixelValue)
-              anRightLim?.shapesGroup.attr({x: xPixelValue})
+              anLimRight?.shapesGroup.attr({x: xPixelValue})
               return
             }
             fcData = {...fcData, maxfc: xValue};
@@ -116,13 +118,13 @@ useEffect(() => {
             type: "path",
             points: [
               {
-                x: xl.max,
+                x: 3000,
                 y: yl.min,
                 xAxis: 0,
                 yAxis: 0
               },
               {
-                x: xl.max,
+                x: 3000,
                 y: yl.max,
                 xAxis: 0,
                 yAxis: 0
@@ -131,11 +133,9 @@ useEffect(() => {
           }
         ]
       }
-    )
-
-    
+    ))
       
-    anLeftLim = chart.addAnnotation(
+    setAnLimLeft(chart.addAnnotation(
         {
           shapeOptions: {
             type: "path",
@@ -175,8 +175,8 @@ useEffect(() => {
             }
           ]
         }
-      )
-  
+      ))
+    */      
   }
 }, [bins, hist]);
 

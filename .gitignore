@@ -42,3 +42,5 @@ __pycache__
 # External libraries
 *.dylib
 
+# Test image files
+*.ser

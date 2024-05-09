@@ -43,7 +43,7 @@ const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
     const framehistogramheader = 0x348da5f8
 
     useEffect(() => {
-      const websocket = new WebSocket('ws://localhost:8001');
+      const websocket = new WebSocket('ws://127.0.0.1:8001/');
       websocket.binaryType = 'arraybuffer';
       setWs(websocket);
   
