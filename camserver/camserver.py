@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-# %%
 import asyncio
 import json
 import sys
@@ -85,7 +84,7 @@ async def simcam():
             frame = (frame * 16).astype(np.uint16)        
             timestamp = dt.datetime.now()
             await callback(frame, timestamp)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
 
 
 
@@ -120,7 +119,7 @@ async def ws_message(ws, message, opcode):
 app.ws("/*", {
     'compression': CompressOptions.SHARED_COMPRESSOR,
     'max_payload_length': 64 * 1024 * 1024,
-    'idle_timeout': 12,''
+    'idle_timeout': 12,
     'open': ws_open,
     'message': ws_message,
     'drain': lambda ws: print(f'WebSocket backpressure: {ws.get_buffered_amount()}'),

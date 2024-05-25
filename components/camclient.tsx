@@ -1,3 +1,4 @@
+"use client";
 import { AnyMxRecord } from 'dns';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 

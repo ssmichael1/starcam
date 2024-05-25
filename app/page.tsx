@@ -4,6 +4,7 @@ import ImageView from "@/components/imageview";
 import Histogram from "@/components/framehistogram";
 import { WebSocketProvider, WebSocketContext } from "@/components/camclient";
 import {useContext} from "react";
+import {Section} from "@/components/templates";
 
 export default function Home() {
   // Assuming you have a 1D array of grayscale values
@@ -23,9 +24,17 @@ export default function Home() {
     }
     return (
       <div className="items-start items-center">
-        <div>Hi Steven</div>
-        <ImageView pixelData={data} width={cols} height={rows} displayWidth={cols*scale} displayHeight={rows*scale} />
-        <Histogram bins={frameHistogram.bins} hist={frameHistogram.hist} />
+        <Section title="Image">
+          <ImageView pixelData={data}
+            width={cols} height={rows}
+            displayWidth={cols*scale} displayHeight={rows*scale}
+            />
+        </Section>
+        <Section title="Histogram">
+          <Histogram
+            bins={frameHistogram.bins}
+            hist={frameHistogram.hist} />
+        </Section>
       </div>
     );
   }
